@@ -1,13 +1,14 @@
 
+// Металлизированная палитра для сегментов
 export const WHEEL_COLORS = [
-  "#f0abfc", // Fuchsia 300
-  "#818cf8", // Indigo 400
-  "#22d3ee", // Cyan 400
-  "#34d399", // Emerald 400
-  "#fbbf24", // Amber 400
-  "#f87171", // Red 400
-  "#c084fc", // Purple 400
-  "#a3e635", // Lime 400
+  '#a5b4fc', // Steel violet
+  '#67e8f9', // Ice cyan
+  '#9ef0c4', // Mint steel
+  '#f9d976', // Brass gold
+  '#fda4af', // Soft coral
+  '#cbd5e1', // Gunmetal light
+  '#7dd3fc', // Sky steel
+  '#fbb6ce', // Rose quartz
 ];
 
 export const INITIAL_PLAYERS: string[] = [];

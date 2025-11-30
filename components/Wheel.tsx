@@ -12,6 +12,33 @@ interface WheelProps {
 }
 
 const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isSpinning }) => {
+  const shadeColor = (hex: string, percent: number) => {
+    const parsed = hex.replace('#', '');
+    const num = parseInt(parsed, 16);
+    if (Number.isNaN(num)) return hex;
+    const amt = Math.round(2.55 * percent);
+    const r = Math.min(255, Math.max(0, (num >> 16) + amt));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amt));
+    const b = Math.min(255, Math.max(0, (num & 0x0000ff) + amt));
+    return `#${(0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  };
+
+  const gradients = useMemo(() => {
+    return players.map((p, idx) => {
+      const base = p.color;
+      const highlight = shadeColor(base, 22);
+      const shadow = shadeColor(base, -18);
+      const accent = shadeColor(base, 8);
+      return {
+        id: `grad-${p.id}`,
+        highlight,
+        shadow,
+        accent,
+        angle: (idx * 27) % 360,
+      };
+    });
+  }, [players]);
+
   // Detect mobile layout to adjust sizes conditionally
   // Using < 1024px to match the 'lg' breakpoint used in App.tsx
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
@@ -231,6 +258,21 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
              <filter id="text-shadow">
                <feDropShadow dx="1" dy="1" stdDeviation="1" floodColor="rgba(0,0,0,0.5)"/>
              </filter>
+             {gradients.map((g) => (
+               <linearGradient
+                 key={g.id}
+                 id={g.id}
+                 x1="0%"
+                 y1="0%"
+                 x2="100%"
+                 y2="100%"
+                 gradientTransform={`rotate(${g.angle})`}
+               >
+                 <stop offset="0%" stopColor={g.highlight} />
+                 <stop offset="45%" stopColor={g.accent} />
+                 <stop offset="100%" stopColor={g.shadow} />
+               </linearGradient>
+             ))}
           </defs>
           <g>
             {players.length === 0 ? (
@@ -267,7 +309,7 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
                 <g key={arc.data.id}>
                   <path
                     d={arc.path || undefined}
-                    fill={arc.data.color}
+                    fill={`url(#grad-${arc.data.id})`}
                     stroke="#020617" 
                     strokeWidth="3"
                     className="transition-all"

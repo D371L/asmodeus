@@ -270,6 +270,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen lg:h-screen bg-[#020617] text-slate-200 flex flex-col lg:flex-row lg:overflow-hidden font-sans selection:bg-red-500 selection:text-white relative">
+      <div className="floating-stripes"></div>
       <div className="noise-overlay"></div>
       <div className="grid-overlay"></div>
       <div className="scanlines"></div>
@@ -301,9 +302,10 @@ const App: React.FC = () => {
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="w-full h-auto lg:h-full lg:w-[450px] bg-slate-900/95 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col z-20 shadow-2xl order-2 lg:order-2 backdrop-blur-md relative">
-        
-        <div className="p-3 lg:p-6 border-b border-slate-800 bg-slate-950/50 hidden lg:block">
+      <div className="w-full h-auto lg:h-full lg:w-[450px] glass-panel bg-slate-900/80 border-t lg:border-t-0 lg:border-l border-slate-800/70 flex flex-col z-20 shadow-2xl order-2 lg:order-2 relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+
+        <div className="p-3 lg:p-6 border-b border-slate-800/70 bg-slate-950/40 hidden lg:block">
            <div className="flex items-center gap-3 mb-2">
              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_red]"></div>
              <h2 className="text-xs font-mono text-red-500 tracking-[0.3em]">COMMAND CENTER</h2>
@@ -311,11 +313,18 @@ const App: React.FC = () => {
            <h1 className="text-4xl font-display font-black text-white tracking-tight neon-text italic">
              ASMODEUS
            </h1>
+           <div className="flex flex-wrap items-center gap-2 mt-3">
+             <span className="chip chip-red">Game Mode</span>
+             <span className="chip chip-cyan">Elimination {eliminationMode ? 'On' : 'Off'}</span>
+             <span className="chip chip-amber">Sound {soundEnabled ? 'On' : 'Off'}</span>
+           </div>
+           <div className="hud-line mt-4"></div>
         </div>
 
         <div className="flex-none lg:flex-1 lg:overflow-y-auto custom-scrollbar flex flex-col p-4 lg:p-6 gap-4">
            
-           <div className="w-full">
+           <div className="w-full glass-panel rounded-xl border border-slate-800/60 shadow-xl relative overflow-hidden p-4 lg:p-5">
+             <div className="hud-line absolute top-0 left-0 right-0" aria-hidden></div>
              <Controls 
                players={players} 
                onAddPlayer={handleAddPlayer} 
@@ -325,10 +334,30 @@ const App: React.FC = () => {
                eliminationMode={eliminationMode}
                setEliminationMode={setEliminationMode}
              />
+             
+             <div className="grid grid-cols-2 gap-2 mt-4 text-[11px] font-mono text-slate-400 uppercase tracking-tight">
+               <div className="bg-slate-900/70 border border-slate-800/60 rounded-lg px-3 py-2 flex items-center justify-between">
+                 <span>Players</span>
+                 <span className="text-cyan-400 font-bold">{players.length}</span>
+               </div>
+               <div className="bg-slate-900/70 border border-slate-800/60 rounded-lg px-3 py-2 flex items-center justify-between">
+                 <span>Mode</span>
+                 <span className="text-amber-300 font-bold">{eliminationMode ? 'Eliminate' : 'Classic'}</span>
+               </div>
+               <div className="bg-slate-900/70 border border-slate-800/60 rounded-lg px-3 py-2 flex items-center justify-between">
+                 <span>Sound</span>
+                 <span className="text-emerald-300 font-bold">{soundEnabled ? 'Enabled' : 'Muted'}</span>
+               </div>
+               <div className="bg-slate-900/70 border border-slate-800/60 rounded-lg px-3 py-2 flex items-center justify-between">
+                 <span>History</span>
+                 <span className="text-fuchsia-300 font-bold">{history.length}</span>
+               </div>
+             </div>
            </div>
 
            {history.length > 0 && (
-             <div className="hidden lg:block bg-slate-950/50 rounded-lg p-4 border border-slate-800 shrink-0">
+             <div className="hidden lg:block glass-panel rounded-xl p-4 border border-slate-800/70 shrink-0 shadow-xl relative overflow-hidden">
+               <div className="absolute inset-x-0 top-0 h-1 hud-line" aria-hidden></div>
                <div className="flex items-center gap-2 mb-3 text-slate-400">
                  <History className="w-4 h-4" />
                  <span className="text-xs font-bold uppercase tracking-wider">Recent Victories</span>
@@ -345,7 +374,8 @@ const App: React.FC = () => {
            )}
         </div>
 
-        <div className="p-4 lg:p-6 bg-slate-950 border-t border-slate-800 shrink-0 pb-safe-area sticky bottom-0 lg:relative z-30">
+        <div className="p-4 lg:p-6 bg-slate-950/90 border-t border-slate-800 shrink-0 pb-safe-area sticky bottom-0 lg:relative z-30">
+          <div className="accent-bar mb-4" aria-hidden></div>
           <button
             onClick={handleSpin}
             disabled={isSpinning || players.length < 2}
