@@ -14,6 +14,11 @@ const initAudio = () => {
   return audioCtx;
 };
 
+// Ensure audio context is created/resumed after a user gesture
+export const ensureAudio = () => {
+  return initAudio();
+};
+
 // 1. The mechanical "Tick" when passing a peg
 export const playTick = () => {
   const ctx = initAudio();

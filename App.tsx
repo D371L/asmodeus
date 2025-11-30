@@ -5,7 +5,7 @@ import Wheel from './components/Wheel';
 import Controls from './components/Controls';
 import WinnerModal from './components/WinnerModal';
 import { Play, Zap, History, Trophy } from 'lucide-react';
-import { playTick, playWin, playSpinStart } from './utils/audio';
+import { ensureAudio, playTick, playWin, playSpinStart } from './utils/audio';
 
 // Helper for cubic-bezier(0.1, 0, 0.18, 1) approximation
 // We need this to calculate where the wheel IS during the JS loop to play sounds correctly
@@ -18,20 +18,67 @@ function cubicBezier(t: number): number {
     return 1 - Math.pow(1 - t, 4);
 }
 
+const PLAYERS_STORAGE_KEY = 'asmodeus_players';
+const HISTORY_STORAGE_KEY = 'asmodeus_history';
+
+const normalizePlayers = (raw: any[], colorOffset = 0): Player[] => {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .filter((item) => item && typeof item.name === 'string')
+    .map((item, index) => ({
+      id: typeof item.id === 'string' ? item.id : crypto.randomUUID(),
+      name: item.name,
+      color:
+        typeof item.color === 'string'
+          ? item.color
+          : WHEEL_COLORS[(index + colorOffset) % WHEEL_COLORS.length],
+    }));
+};
+
 const App: React.FC = () => {
-  const [players, setPlayers] = useState<Player[]>(
-    INITIAL_PLAYERS.map((name, i) => ({
+  const [players, setPlayers] = useState<Player[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(PLAYERS_STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const normalized = normalizePlayers(parsed);
+          if (normalized.length) {
+            return normalized;
+          }
+        } catch (err) {
+          console.warn('Не удалось прочитать игроков из localStorage', err);
+        }
+      }
+    }
+
+    return INITIAL_PLAYERS.map((name, i) => ({
       id: crypto.randomUUID(),
       name,
       color: WHEEL_COLORS[i % WHEEL_COLORS.length],
-    }))
-  );
+    }));
+  });
 
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState<Player | null>(null);
-  const [history, setHistory] = useState<Player[]>([]);
+  const [history, setHistory] = useState<Player[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          return normalizePlayers(parsed).slice(0, 5);
+        } catch (err) {
+          console.warn('Не удалось прочитать историю из localStorage', err);
+        }
+      }
+    }
+    return [];
+  });
   const [eliminationMode, setEliminationMode] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   
   // Audio state refs
   const lastTickRef = useRef<number>(0);
@@ -72,8 +119,32 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSpinning, winner, players]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(PLAYERS_STORAGE_KEY, JSON.stringify(players));
+  }, [players]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+  }, [history]);
+
+  useEffect(() => {
+    if (soundEnabled) {
+      ensureAudio();
+    }
+  }, [soundEnabled]);
+
   const handleAddPlayer = (name: string, color: string) => {
-    setPlayers((prev) => [...prev, { id: crypto.randomUUID(), name, color }]);
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const exists = players.some((p) => p.name.toLowerCase() === trimmed.toLowerCase());
+    if (exists) {
+      alert('Такое имя уже есть в списке');
+      return;
+    }
+
+    setPlayers((prev) => [...prev, { id: crypto.randomUUID(), name: trimmed, color }]);
   };
 
   const handleRemovePlayer = (id: string) => {
@@ -97,7 +168,6 @@ const App: React.FC = () => {
   const handleSpin = useCallback(() => {
     if (isSpinning || players.length < 2) return;
 
-    playSpinStart();
     setWinner(null);
     setIsSpinning(true);
     
@@ -114,6 +184,11 @@ const App: React.FC = () => {
     const targetRotation = startRotation + (360 * spinCount) + randomDegree;
     
     setRotation(targetRotation);
+
+    if (soundEnabled) {
+      ensureAudio();
+      playSpinStart();
+    }
 
     // Audio Sync Loop
     // We simulate the rotation in JS to trigger sounds when passing pegs
@@ -136,7 +211,7 @@ const App: React.FC = () => {
       
       if (currentTickIndex > lastTickRef.current) {
         // Only play if moving fast enough (don't click on the very last slow creep)
-        if (progress < 0.98) { 
+        if (progress < 0.98 && soundEnabled) { 
            playTick();
         }
         lastTickRef.current = currentTickIndex;
@@ -151,7 +226,7 @@ const App: React.FC = () => {
     cancelAnimationFrame(animationFrameRef.current);
     animationFrameRef.current = requestAnimationFrame(tick);
 
-  }, [rotation, isSpinning, players.length]);
+  }, [rotation, isSpinning, players.length, soundEnabled]);
 
   const handleSpinEnd = () => {
     setIsSpinning(false);
@@ -166,7 +241,9 @@ const App: React.FC = () => {
     setWinner(winPlayer);
     setHistory(prev => [winPlayer, ...prev].slice(0, 5));
     
-    playWin();
+    if (soundEnabled) {
+      playWin();
+    }
   };
 
   const handleModalClose = () => {
@@ -174,6 +251,16 @@ const App: React.FC = () => {
     if (eliminationMode && winner) {
       handleRemovePlayer(winner.id);
     }
+  };
+
+  const handleToggleSound = () => {
+    setSoundEnabled((prev) => {
+      const next = !prev;
+      if (!prev) {
+        ensureAudio();
+      }
+      return next;
+    });
   };
 
   return (
@@ -277,9 +364,22 @@ const App: React.FC = () => {
              )}
           </button>
           
-          <div className="mt-2 lg:mt-3 flex justify-between text-[10px] text-slate-600 font-mono uppercase">
+          <div className="mt-2 lg:mt-3 flex justify-between items-center text-[10px] text-slate-600 font-mono uppercase gap-3">
              <span>Status: {isSpinning ? 'ACTIVE' : 'READY'}</span>
-             <span>{players.length} SOULS LOADED</span>
+             <div className="flex items-center gap-2">
+               <button
+                 onClick={handleToggleSound}
+                 className={`px-2 py-1 rounded border transition-colors ${
+                   soundEnabled 
+                     ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10' 
+                     : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-500'
+                 }`}
+                 title="Переключить звук"
+               >
+                 Sound: {soundEnabled ? 'On' : 'Off'}
+               </button>
+               <span>{players.length} SOULS LOADED</span>
+             </div>
           </div>
         </div>
 
