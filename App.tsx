@@ -4,6 +4,7 @@ import { INITIAL_PLAYERS, WHEEL_COLORS } from './constants';
 import Wheel from './components/Wheel';
 import Controls from './components/Controls';
 import WinnerModal from './components/WinnerModal';
+import Confetti from './components/Confetti';
 import { Play, Zap, History, Trophy } from 'lucide-react';
 import { ensureAudio, playTick, playWin, playSpinStart } from './utils/audio';
 
@@ -20,6 +21,7 @@ function cubicBezier(t: number): number {
 
 const PLAYERS_STORAGE_KEY = 'asmodeus_players';
 const HISTORY_STORAGE_KEY = 'asmodeus_history';
+const CONFETTI_DURATION = 2200;
 
 const normalizePlayers = (raw: any[], colorOffset = 0): Player[] => {
   if (!Array.isArray(raw)) return [];
@@ -79,6 +81,7 @@ const App: React.FC = () => {
   });
   const [eliminationMode, setEliminationMode] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [confettiTrigger, setConfettiTrigger] = useState(0);
   
   // Audio state refs
   const lastTickRef = useRef<number>(0);
@@ -244,6 +247,8 @@ const App: React.FC = () => {
     if (soundEnabled) {
       playWin();
     }
+
+    setConfettiTrigger((prev) => prev + 1);
   };
 
   const handleModalClose = () => {
@@ -265,6 +270,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen lg:h-screen bg-[#020617] text-slate-200 flex flex-col lg:flex-row lg:overflow-hidden font-sans selection:bg-red-500 selection:text-white relative">
+      <div className="noise-overlay"></div>
+      <div className="grid-overlay"></div>
       <div className="scanlines"></div>
       <div className="fixed inset-0 z-0 opacity-10 pointer-events-none" 
            style={{ backgroundImage: 'radial-gradient(#475569 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
@@ -386,6 +393,7 @@ const App: React.FC = () => {
       </div>
 
       <WinnerModal winner={winner} onClose={handleModalClose} />
+      <Confetti trigger={confettiTrigger} duration={CONFETTI_DURATION} />
     </div>
   );
 };

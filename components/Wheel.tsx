@@ -83,6 +83,74 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
       {/* Background Ambient Glow */}
       <div className="absolute inset-0 bg-fuchsia-900/10 blur-[60px] rounded-full z-0 animate-pulse pointer-events-none" style={{ width: radius * 2.2, height: radius * 2.2, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}></div>
 
+      {/* Subtle radial gradient backdrop */}
+      <div
+        className="absolute rounded-full pointer-events-none"
+        style={{
+          width: radius * 2.6,
+          height: radius * 2.6,
+          background: 'radial-gradient(circle at 30% 30%, rgba(244,63,94,0.35), transparent 55%), radial-gradient(circle at 70% 60%, rgba(14,165,233,0.18), transparent 60%)',
+          filter: 'blur(30px)',
+          opacity: 0.8,
+        }}
+      />
+
+      {/* Outer mechanical rim with bolts */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0">
+        <svg width={radius * 2.6} height={radius * 2.6} viewBox={`0 0 ${radius * 2.6} ${radius * 2.6}`}>
+          <defs>
+            <linearGradient id="rimMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#1f2937" />
+              <stop offset="50%" stopColor="#0b1222" />
+              <stop offset="100%" stopColor="#0f172a" />
+            </linearGradient>
+            <radialGradient id="rimHighlight" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.25)" />
+              <stop offset="50%" stopColor="rgba(255,255,255,0.04)" />
+              <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+            </radialGradient>
+          </defs>
+          <circle
+            cx={radius * 1.3}
+            cy={radius * 1.3}
+            r={radius * 1.25}
+            fill="url(#rimMetal)"
+            stroke="#111827"
+            strokeWidth={radius * 0.02}
+            opacity="0.9"
+            filter="drop-shadow(0 0 20px rgba(0,0,0,0.6))"
+          />
+          <circle
+            cx={radius * 1.3}
+            cy={radius * 1.3}
+            r={radius * 1.1}
+            fill="none"
+            stroke="#475569"
+            strokeWidth={radius * 0.01}
+            strokeDasharray="6 10"
+            opacity="0.6"
+          />
+
+          {/* Bolts */}
+          {Array.from({ length: 24 }).map((_, i) => {
+            const angle = (i / 24) * Math.PI * 2;
+            const boltRadius = radius * 1.2;
+            const x = radius * 1.3 + boltRadius * Math.cos(angle);
+            const y = radius * 1.3 + boltRadius * Math.sin(angle);
+            return (
+              <g key={i} transform={`translate(${x}, ${y})`}>
+                <circle r={radius * 0.02} fill="#0f172a" stroke="#1f2937" strokeWidth={radius * 0.004} />
+                <line x1={-radius * 0.01} y1="0" x2={radius * 0.01} y2="0" stroke="#475569" strokeWidth={radius * 0.003} />
+                <line x1="0" y1={-radius * 0.01} x2="0" y2={radius * 0.01} stroke="#475569" strokeWidth={radius * 0.003} />
+              </g>
+            );
+          })}
+
+          {/* Soft highlight */}
+          <circle cx={radius * 1.3} cy={radius * 1.3} r={radius * 1.25} fill="url(#rimHighlight)" />
+        </svg>
+      </div>
+
       {/* NEW: Improved Cyber-Talon Pointer (Dynamically Scaled) */}
       <div 
         className="absolute top-0 left-1/2 z-40 pointer-events-none drop-shadow-[0_0_15px_rgba(239,68,68,0.6)]"
@@ -134,6 +202,15 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
                       shadow-[0_0_50px_rgba(236,72,153,0.3),inset_0_0_20px_#000000] 
                       bg-slate-950 overflow-hidden"
             style={{ width: radius * 2, height: radius * 2 }}>
+
+        {/* Glassy reflection overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none z-20"
+          style={{
+            background: 'radial-gradient(circle at 25% 20%, rgba(255,255,255,0.16), transparent 45%), linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0))',
+            mixBlendMode: 'screen',
+          }}
+        />
         <svg
           width="100%"
           height="100%"
