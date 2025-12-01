@@ -53,7 +53,7 @@ const App: React.FC = () => {
             return normalized;
           }
         } catch (err) {
-          console.warn('Не удалось прочитать игроков из localStorage', err);
+          console.warn('Could not read players from localStorage', err);
         }
       }
     }
@@ -76,7 +76,7 @@ const App: React.FC = () => {
           const parsed = JSON.parse(saved);
           return normalizePlayers(parsed).slice(0, 5);
         } catch (err) {
-          console.warn('Не удалось прочитать историю из localStorage', err);
+          console.warn('Could not read history from localStorage', err);
         }
       }
     }
@@ -163,7 +163,7 @@ const App: React.FC = () => {
       playSpinStart();
     }
 
-    // Light beam near финальные обороты
+    // Light beam near final turns
     beamTimeoutRef.current = window.setTimeout(() => {
       setBeamTrigger((prev) => prev + 1);
     }, duration * 0.7);
@@ -267,7 +267,7 @@ const App: React.FC = () => {
     }
   }, [demoMode]);
 
-  // Demo mode авто-спин
+  // Demo mode auto-spin
   useEffect(() => {
     if (!demoMode) return;
     if (isSpinning) return;
@@ -282,7 +282,7 @@ const App: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [demoMode, isSpinning, winner, players.length, handleSpin]);
 
-  // Автодобавление игроков для демо
+  // Auto add players for demo
   useEffect(() => {
     if (!demoMode) return;
     if (players.length >= 2) return;
@@ -317,20 +317,20 @@ const App: React.FC = () => {
     if (!trimmed) return;
     const exists = players.some((p) => p.name.toLowerCase() === trimmed.toLowerCase());
     if (exists) {
-      alert('Такое имя уже есть в списке');
-      setLiveMessage(`Имя ${trimmed} уже есть`);
+      alert('Name already exists');
+      setLiveMessage(`${trimmed} is already in the list`);
       return;
     }
 
     setPlayers((prev) => [...prev, { id: crypto.randomUUID(), name: trimmed, color }]);
-    setLiveMessage(`Добавлен игрок ${trimmed}`);
+    setLiveMessage(`Added player ${trimmed}`);
   };
 
   const handleRemovePlayer = (id: string) => {
     const removed = players.find((p) => p.id === id);
     setPlayers((prev) => prev.filter((p) => p.id !== id));
     if (removed) {
-      setLiveMessage(`Удалён игрок ${removed.name}`);
+      setLiveMessage(`Removed player ${removed.name}`);
     }
   };
 
@@ -369,7 +369,7 @@ const App: React.FC = () => {
       );
       setHistory([]);
       setWinner(null);
-      setLiveMessage('Список игроков сброшен');
+      setLiveMessage('Player list reset');
     }
   };
 
@@ -382,11 +382,11 @@ const App: React.FC = () => {
     
       const winningIndex = Math.floor((players.length - (actualRotation / sliceAngle) % players.length)) % players.length;
       
-      const winPlayer = players[winningIndex];
-      setWinner(winPlayer);
-      setHighlightId(winPlayer.id);
-      setHistory(prev => [winPlayer, ...prev].slice(0, 5));
-      setLiveMessage(`Победил ${winPlayer.name}`);
+    const winPlayer = players[winningIndex];
+    setWinner(winPlayer);
+    setHighlightId(winPlayer.id);
+    setHistory(prev => [winPlayer, ...prev].slice(0, 5));
+    setLiveMessage(`${winPlayer.name} won`);
       
       if (soundEnabled) {
         playWin();
@@ -534,7 +534,7 @@ const App: React.FC = () => {
           <button
             onClick={handleSpin}
             disabled={isSpinning || players.length < 2}
-            aria-label={isSpinning ? 'Колесо крутится' : `Запустить спин. Игроков: ${players.length}`}
+            aria-label={isSpinning ? 'Wheel is spinning' : `Spin the wheel. Players: ${players.length}`}
             className={`w-full relative overflow-hidden group py-4 lg:py-5 rounded-md font-display font-black text-lg lg:text-xl tracking-widest transition-all ${
               isSpinning || players.length < 2
                 ? 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700'
@@ -561,13 +561,13 @@ const App: React.FC = () => {
              <span>Status: {isSpinning ? 'ACTIVE' : 'READY'}</span>
              <div className="flex items-center gap-2">
                <button
-                 onClick={handleToggleSound}
+                onClick={handleToggleSound}
                  className={`px-2 py-1 rounded border transition-colors ${
                    soundEnabled 
                      ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10' 
                      : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-500'
                  }`}
-                 title="Переключить звук"
+                 title="Toggle sound"
                >
                  Sound: {soundEnabled ? 'On' : 'Off'}
                </button>
@@ -576,10 +576,10 @@ const App: React.FC = () => {
                  className={`px-2 py-1 rounded border transition-colors ${
                    demoMode
                      ? 'border-amber-400 text-amber-300 bg-amber-400/10'
-                     : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-500'
+                   : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-500'
                  }`}
-                title="Демо-режим: автоспин"
-              >
+                 title="Demo mode: auto-spin"
+               >
                  Demo: {demoMode ? 'On' : 'Off'}
                </button>
                <span>{players.length} SOULS LOADED</span>
@@ -593,7 +593,7 @@ const App: React.FC = () => {
       <WinnerModal winner={winner} onClose={handleModalClose} />
       <Confetti trigger={confettiTrigger} duration={CONFETTI_DURATION} />
       <div className="sr-only" aria-live="polite">
-        {(winner ? `Победил ${winner.name}` : isSpinning ? 'Колесо крутится' : 'Готово') + '. ' + (liveMessage || '')}
+        {(winner ? `${winner.name} won` : isSpinning ? 'Wheel is spinning' : 'Ready') + '. ' + (liveMessage || '')}
       </div>
     </div>
   );

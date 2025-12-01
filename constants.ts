@@ -1,5 +1,5 @@
 
-// Металлизированная палитра для сегментов
+// Metallic-inspired palette for slices
 export const WHEEL_COLORS = [
   '#a5b4fc', // Steel violet
   '#67e8f9', // Ice cyan

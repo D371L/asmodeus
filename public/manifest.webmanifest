@@ -6,7 +6,7 @@
   "display": "standalone",
   "background_color": "#030712",
   "theme_color": "#030712",
-  "description": "Неоновое колесо фортуны.",
+  "description": "Neon fortune wheel.",
   "icons": [
     {
       "src": "/asmodeus/icon-192.svg",

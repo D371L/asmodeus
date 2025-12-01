@@ -71,8 +71,8 @@ const Controls: React.FC<ControlsProps> = ({
               onClick={onReset}
               disabled={isSpinning}
               className="p-1 rounded border border-slate-700 text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-all shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:shadow-[0_0_12px_rgba(148,163,184,0.25)] active:translate-y-[1px]"
-              aria-label="Сбросить список"
-              title="Reset List"
+              aria-label="Reset list"
+              title="Reset list"
             >
               <RotateCcw className="w-3 h-3" />
             </button>
@@ -82,10 +82,10 @@ const Controls: React.FC<ControlsProps> = ({
               onClick={onAddPreset}
               disabled={isSpinning}
               className="px-2 py-1 rounded border border-slate-700 text-slate-400 hover:text-cyan-300 hover:border-cyan-500 transition-all shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:shadow-[0_0_12px_rgba(34,211,238,0.2)] active:translate-y-[1px] text-[11px] uppercase tracking-tight"
-              aria-label="Добавить пресет имён"
-              title="Добавить пресет имён"
+              aria-label="Add preset names"
+              title="Add preset names"
             >
-              Пресет
+              Preset
             </button>
 
             {/* Toggle Switch for Elimination Mode */}
@@ -98,8 +98,8 @@ const Controls: React.FC<ControlsProps> = ({
                  : 'bg-slate-900 border-slate-700 text-slate-500 hover:text-slate-300 hover:shadow-[0_0_12px_rgba(255,255,255,0.08)]'
               }`}
               aria-pressed={eliminationMode}
-              aria-label="Режим элиминации"
-              title="Elimination Mode: Remove winner after spin"
+              aria-label="Elimination mode"
+              title="Elimination mode: remove winner after spin"
             >
               <span className="text-[10px] font-mono font-bold uppercase hidden lg:inline">ELIMINATION</span>
               <Skull className={`w-3 h-3 ${eliminationMode ? 'animate-pulse' : ''}`} />
@@ -151,7 +151,7 @@ const Controls: React.FC<ControlsProps> = ({
               onClick={() => onRemovePlayer(player.id)}
               disabled={isSpinning}
               className="text-slate-500 hover:text-red-500 disabled:opacity-30 transition-colors p-2 lg:p-1 lg:opacity-0 group-hover:opacity-100 focus:opacity-100 active:opacity-100"
-              aria-label={`Удалить ${player.name}`}
+              aria-label={`Remove ${player.name}`}
             >
               <Trash2 className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
             </button>

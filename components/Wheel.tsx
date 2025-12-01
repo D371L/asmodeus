@@ -261,7 +261,7 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
                       bg-slate-950 overflow-hidden"
             style={{ width: radius * 2, height: radius * 2 }}>
 
-        {/* Beam sweep on финальных оборотах */}
+      {/* Beam sweep on final turns */}
         {beamTrigger > 0 && (
           <div
             key={beamTrigger}
