@@ -45,7 +45,6 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
   // Detect mobile layout to adjust sizes conditionally
   // Using < 1024px to match the 'lg' breakpoint used in App.tsx
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
-  const winnerArc = highlightId ? arcs.find((a) => a.data.id === highlightId) : null;
 
   const arcs = useMemo(() => {
     const pieGen = pie<Player>()
@@ -84,6 +83,7 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
       };
     });
   }, [players, radius, isMobile]);
+  const winnerArc = highlightId ? arcs.find((a) => a.data.id === highlightId) : null;
 
   const handleTransitionEnd = (e: React.TransitionEvent<SVGSVGElement>) => {
     if (e.target !== e.currentTarget || e.propertyName !== 'transform') {
