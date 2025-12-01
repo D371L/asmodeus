@@ -1,0 +1,24 @@
+{
+  "name": "Asmodeus Wheel",
+  "short_name": "Asmodeus",
+  "start_url": "/asmodeus/",
+  "scope": "/asmodeus/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "description": "Неоновое колесо фортуны.",
+  "icons": [
+    {
+      "src": "/asmodeus/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/asmodeus/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
