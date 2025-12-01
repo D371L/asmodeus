@@ -8,7 +8,6 @@ import Confetti from './components/Confetti';
 import WinRipple from './components/WinRipple';
 import { Play, Zap, History, Trophy } from 'lucide-react';
 import { ensureAudio, playTick, playWin, playSpinStart } from './utils/audio';
-import { useParallax } from './hooks/useParallax';
 
 // Helper for cubic-bezier(0.1, 0, 0.18, 1) approximation
 // We need this to calculate where the wheel IS during the JS loop to play sounds correctly
@@ -110,7 +109,6 @@ const [eliminationMode, setEliminationMode] = useState(() => {
   const [sparkBurst, setSparkBurst] = useState(0);
   const [beamTrigger, setBeamTrigger] = useState(0);
   const [liveMessage, setLiveMessage] = useState('');
-  const parallax = useParallax(4, 10);
   const [rippleTrigger, setRippleTrigger] = useState(0);
   
   // Audio state refs
@@ -445,11 +443,6 @@ const [eliminationMode, setEliminationMode] = useState(() => {
       {/* LEFT PANEL */}
       <div
         className="relative w-full h-auto lg:h-full lg:flex-1 bg-gradient-to-br from-slate-950 via-[#050b1d] to-slate-950 flex flex-col items-center justify-start lg:justify-center p-0 lg:p-0 order-1 lg:order-1 shrink-0"
-        style={{
-          transform: `rotateX(${parallax.rotateX}deg) rotateY(${parallax.rotateY}deg) translate(${parallax.translateX}px, ${parallax.translateY}px)`,
-          transformStyle: 'preserve-3d',
-          transition: 'transform 120ms ease-out',
-        }}
       >
          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-fuchsia-900/10 rounded-full blur-[100px] pointer-events-none fixed lg:absolute"></div>
          
@@ -478,11 +471,6 @@ const [eliminationMode, setEliminationMode] = useState(() => {
       {/* RIGHT PANEL */}
       <div
         className="w-full h-auto lg:h-full lg:w-[450px] glass-panel bg-slate-900/80 border-t lg:border-t-0 lg:border-l border-slate-800/70 flex flex-col z-20 shadow-2xl order-2 lg:order-2 relative overflow-hidden"
-        style={{
-          transform: `rotateX(${parallax.rotateX * 0.6}deg) rotateY(${parallax.rotateY * 0.6}deg) translate(${parallax.translateX * 0.6}px, ${parallax.translateY * 0.6}px)`,
-          transition: 'transform 120ms ease-out',
-          transformStyle: 'preserve-3d',
-        }}
       >
         <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
 
