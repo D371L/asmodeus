@@ -150,6 +150,12 @@ const [eliminationMode, setEliminationMode] = useState(() => {
     return () => window.removeEventListener('resize', debouncedResize);
   }, []);
 
+  // Preload lazy chunks to avoid blank modal on first win
+  useEffect(() => {
+    import('./components/WinnerModal');
+    import('./components/Confetti');
+  }, []);
+
   const handleSpin = useCallback(() => {
     if (isSpinning || players.length < 2) return;
 
@@ -681,7 +687,16 @@ const [eliminationMode, setEliminationMode] = useState(() => {
 
       </div>
 
-      <Suspense fallback={null}>
+      <Suspense
+        fallback={
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur">
+            <div className="flex flex-col items-center gap-3 text-slate-200 font-mono text-sm">
+              <div className="w-10 h-10 rounded-full border-4 border-fuchsia-400/50 border-t-transparent animate-spin"></div>
+              <span>Loading...</span>
+            </div>
+          </div>
+        }
+      >
         <WinnerModal winner={winner} onClose={handleModalClose} />
         <Confetti trigger={confettiTrigger} duration={CONFETTI_DURATION} />
       </Suspense>
