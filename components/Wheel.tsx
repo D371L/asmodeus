@@ -9,9 +9,12 @@ interface WheelProps {
   radius: number;
   onSpinEnd?: () => void;
   isSpinning: boolean;
+  highlightId?: string | null;
+  sparkBurst?: number;
+  beamTrigger?: number;
 }
 
-const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isSpinning }) => {
+const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isSpinning, highlightId, sparkBurst = 0, beamTrigger = 0 }) => {
   const shadeColor = (hex: string, percent: number) => {
     const parsed = hex.replace('#', '');
     const num = parseInt(parsed, 16);
@@ -214,6 +217,34 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
          </div>
       </div>
 
+      {/* Pointer sparks */}
+      {sparkBurst > 0 && (
+        <div
+          key={sparkBurst}
+          className="absolute top-0 left-1/2 z-40 pointer-events-none"
+          style={{ transform: 'translate(-50%, -8px)' }}
+        >
+          <div className="relative w-16 h-16">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <span
+                key={i}
+                className="absolute bg-gradient-to-tr from-red-400 via-amber-200 to-cyan-200 rounded-full"
+                style={{
+                  width: 4 + Math.random() * 8,
+                  height: 4 + Math.random() * 8,
+                  left: `${40 + (Math.random() * 40 - 20)}%`,
+                  top: `${40 + (Math.random() * 30 - 10)}%`,
+                  filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.6))',
+                  animation: 'spark-pop 0.35s ease-out forwards',
+                  animationDelay: `${Math.random() * 0.08}s`,
+                  transformOrigin: 'center',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Decorative Outer Bezel / Chassis */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none opacity-60">
         <svg width={radius * 2.4} height={radius * 2.4} viewBox={`0 0 ${radius * 2.4} ${radius * 2.4}`} className="animate-[spin_40s_linear_infinite]">
@@ -229,6 +260,21 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
                       shadow-[0_0_50px_rgba(236,72,153,0.3),inset_0_0_20px_#000000] 
                       bg-slate-950 overflow-hidden"
             style={{ width: radius * 2, height: radius * 2 }}>
+
+        {/* Beam sweep on финальных оборотах */}
+        {beamTrigger > 0 && (
+          <div
+            key={beamTrigger}
+            className="absolute left-1/2 top-0 w-[40%] h-full pointer-events-none z-30"
+            style={{
+              transform: 'translate(-50%, -4%)',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0))',
+              filter: 'blur(2px)',
+              mixBlendMode: 'screen',
+              animation: 'beam-sweep 0.8s ease-out forwards',
+            }}
+          />
+        )}
 
         {/* Glassy reflection overlay */}
         <div
@@ -257,6 +303,13 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
             </linearGradient>
              <filter id="text-shadow">
                <feDropShadow dx="1" dy="1" stdDeviation="1" floodColor="rgba(0,0,0,0.5)"/>
+             </filter>
+             <filter id="winner-glow">
+               <feGaussianBlur stdDeviation="4" result="blur" />
+               <feMerge>
+                 <feMergeNode in="blur" />
+                 <feMergeNode in="SourceGraphic" />
+               </feMerge>
              </filter>
              {gradients.map((g) => (
                <linearGradient
@@ -313,7 +366,18 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
                     stroke="#020617" 
                     strokeWidth="3"
                     className="transition-all"
+                    filter={highlightId === arc.data.id ? 'url(#winner-glow)' : undefined}
                   />
+                  {highlightId === arc.data.id && (
+                    <path
+                      d={arc.path || undefined}
+                      fill="none"
+                      stroke="rgba(255,255,255,0.9)"
+                      strokeWidth="5"
+                      opacity="0.8"
+                      strokeLinejoin="round"
+                    />
+                  )}
                   
                   {/* Pegs/Pins on the rim */}
                   <circle 

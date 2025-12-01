@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Player } from './types';
-import { INITIAL_PLAYERS, WHEEL_COLORS } from './constants';
+import { INITIAL_PLAYERS, WHEEL_COLORS, PRESET_PLAYERS } from './constants';
 import Wheel from './components/Wheel';
 import Controls from './components/Controls';
 import WinnerModal from './components/WinnerModal';
@@ -22,6 +22,9 @@ function cubicBezier(t: number): number {
 const PLAYERS_STORAGE_KEY = 'asmodeus_players';
 const HISTORY_STORAGE_KEY = 'asmodeus_history';
 const CONFETTI_DURATION = 2200;
+const SOUND_STORAGE_KEY = 'asmodeus_sound';
+const MODE_STORAGE_KEY = 'asmodeus_elimination';
+const DEMO_STORAGE_KEY = 'asmodeus_demo';
 
 const normalizePlayers = (raw: any[], colorOffset = 0): Player[] => {
   if (!Array.isArray(raw)) return [];
@@ -79,13 +82,36 @@ const App: React.FC = () => {
     }
     return [];
   });
-  const [eliminationMode, setEliminationMode] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [eliminationMode, setEliminationMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(MODE_STORAGE_KEY);
+      if (saved) return saved === 'true';
+    }
+    return false;
+  });
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(SOUND_STORAGE_KEY);
+      if (saved) return saved === 'true';
+    }
+    return true;
+  });
+  const [demoMode, setDemoMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(DEMO_STORAGE_KEY);
+      if (saved) return saved === 'true';
+    }
+    return false;
+  });
   const [confettiTrigger, setConfettiTrigger] = useState(0);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [sparkBurst, setSparkBurst] = useState(0);
+  const [beamTrigger, setBeamTrigger] = useState(0);
   
   // Audio state refs
   const lastTickRef = useRef<number>(0);
   const animationFrameRef = useRef<number>(0);
+  const beamTimeoutRef = useRef<number>(0);
   
   const wheelContainerRef = useRef<HTMLDivElement>(null);
   const [wheelSize, setWheelSize] = useState(300);
@@ -112,15 +138,29 @@ const App: React.FC = () => {
   // Keyboard support (Spacebar to spin)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
       if (e.code === 'Space' && !isSpinning && !winner && players.length >= 2) {
         // Prevent scrolling down
         e.preventDefault();
         handleSpin();
+        return;
+      }
+      if (isInput) return;
+      if (e.code === 'KeyS') {
+        e.preventDefault();
+        handleToggleSound();
+        return;
+      }
+      if (e.code === 'KeyD') {
+        e.preventDefault();
+        setDemoMode((prev) => !prev);
+        return;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSpinning, winner, players]);
+  }, [isSpinning, winner, players, handleSpin]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -136,7 +176,43 @@ const App: React.FC = () => {
     if (soundEnabled) {
       ensureAudio();
     }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SOUND_STORAGE_KEY, String(soundEnabled));
+    }
   }, [soundEnabled]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(MODE_STORAGE_KEY, String(eliminationMode));
+    }
+  }, [eliminationMode]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(DEMO_STORAGE_KEY, String(demoMode));
+    }
+  }, [demoMode]);
+
+  // Demo mode авто-спин
+  useEffect(() => {
+    if (!demoMode) return;
+    if (isSpinning) return;
+    if (winner) return;
+    if (players.length < 2) return;
+
+    const delay = 8000 + Math.random() * 4000;
+    const timer = window.setTimeout(() => {
+      handleSpin();
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [demoMode, isSpinning, winner, players.length, handleSpin]);
+
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(beamTimeoutRef.current);
+    };
+  }, []);
 
   const handleAddPlayer = (name: string, color: string) => {
     const trimmed = name.trim();
@@ -152,6 +228,30 @@ const App: React.FC = () => {
 
   const handleRemovePlayer = (id: string) => {
     setPlayers((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const handleReorderPlayers = (from: number, to: number) => {
+    setPlayers((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
+
+  const handleAddPreset = () => {
+    setPlayers((prev) => {
+      const lower = new Set(prev.map((p) => p.name.toLowerCase()));
+      const additions = PRESET_PLAYERS.filter((n) => !lower.has(n.toLowerCase()));
+      if (!additions.length) return prev;
+      const startIndex = prev.length;
+      const newPlayers = additions.map((name, i) => ({
+        id: crypto.randomUUID(),
+        name,
+        color: WHEEL_COLORS[(startIndex + i) % WHEEL_COLORS.length],
+      }));
+      return [...prev, ...newPlayers];
+    });
   };
 
   const handleReset = () => {
@@ -172,7 +272,9 @@ const App: React.FC = () => {
     if (isSpinning || players.length < 2) return;
 
     setWinner(null);
+    setHighlightId(null);
     setIsSpinning(true);
+    window.clearTimeout(beamTimeoutRef.current);
     
     if (window.innerWidth < 1024) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -192,6 +294,11 @@ const App: React.FC = () => {
       ensureAudio();
       playSpinStart();
     }
+
+    // Light beam near финальные обороты
+    beamTimeoutRef.current = window.setTimeout(() => {
+      setBeamTrigger((prev) => prev + 1);
+    }, duration * 0.7);
 
     // Audio Sync Loop
     // We simulate the rotation in JS to trigger sounds when passing pegs
@@ -214,8 +321,11 @@ const App: React.FC = () => {
       
       if (currentTickIndex > lastTickRef.current) {
         // Only play if moving fast enough (don't click on the very last slow creep)
-        if (progress < 0.98 && soundEnabled) { 
-           playTick();
+        if (progress < 0.98) { 
+           if (soundEnabled) {
+             playTick();
+           }
+           setSparkBurst((prev) => prev + 1);
         }
         lastTickRef.current = currentTickIndex;
       }
@@ -242,6 +352,7 @@ const App: React.FC = () => {
     
     const winPlayer = players[winningIndex];
     setWinner(winPlayer);
+    setHighlightId(winPlayer.id);
     setHistory(prev => [winPlayer, ...prev].slice(0, 5));
     
     if (soundEnabled) {
@@ -293,6 +404,9 @@ const App: React.FC = () => {
               radius={Math.max(100, wheelSize)} 
               onSpinEnd={handleSpinEnd}
               isSpinning={isSpinning}
+              highlightId={highlightId}
+              sparkBurst={sparkBurst}
+              beamTrigger={beamTrigger}
             />
          </div>
          
@@ -329,10 +443,13 @@ const App: React.FC = () => {
                players={players} 
                onAddPlayer={handleAddPlayer} 
                onRemovePlayer={handleRemovePlayer}
+               onReorderPlayers={handleReorderPlayers}
+               onAddPreset={handleAddPreset}
                onReset={handleReset}
                isSpinning={isSpinning}
                eliminationMode={eliminationMode}
                setEliminationMode={setEliminationMode}
+               highlightId={highlightId}
              />
              
              <div className="grid grid-cols-2 gap-2 mt-4 text-[11px] font-mono text-slate-400 uppercase tracking-tight">
@@ -364,7 +481,12 @@ const App: React.FC = () => {
                </div>
                <div className="space-y-2">
                  {history.map((h, i) => (
-                   <div key={`${h.id}-${i}`} className="flex items-center justify-between text-sm">
+                   <div
+                     key={`${h.id}-${i}`}
+                     className={`flex items-center justify-between text-sm px-2 py-1 rounded ${
+                       highlightId === h.id && i === 0 ? 'bg-fuchsia-500/10 border border-fuchsia-400/40 shadow-[0_0_12px_rgba(236,72,153,0.3)]' : ''
+                     }`}
+                   >
                       <span className="text-slate-300 font-display">{h.name}</span>
                       {i === 0 && <Trophy className="w-3 h-3 text-yellow-500" />}
                    </div>
@@ -415,6 +537,17 @@ const App: React.FC = () => {
                >
                  Sound: {soundEnabled ? 'On' : 'Off'}
                </button>
+               <button
+                 onClick={() => setDemoMode((prev) => !prev)}
+                 className={`px-2 py-1 rounded border transition-colors ${
+                   demoMode
+                     ? 'border-amber-400 text-amber-300 bg-amber-400/10'
+                     : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-500'
+                 }`}
+                 title="Демо-режим: автоспин"
+               >
+                 Demo: {demoMode ? 'On' : 'Off'}
+               </button>
                <span>{players.length} SOULS LOADED</span>
              </div>
           </div>
@@ -424,6 +557,9 @@ const App: React.FC = () => {
 
       <WinnerModal winner={winner} onClose={handleModalClose} />
       <Confetti trigger={confettiTrigger} duration={CONFETTI_DURATION} />
+      <div className="sr-only" aria-live="polite">
+        {winner ? `Победил ${winner.name}` : isSpinning ? 'Колесо крутится' : 'Готово'}
+      </div>
     </div>
   );
 };

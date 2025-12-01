@@ -49,9 +49,11 @@ const WinnerModal: React.FC<WinnerModalProps> = ({ winner, onClose }) => {
         </button>
 
         <div className="text-center relative z-10">
-          <div className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl font-display font-bold border-4 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
-               style={{ backgroundColor: winner.color, borderColor: '#0f172a', color: '#0f172a' }}>
-            {winner.name.charAt(0).toUpperCase()}
+          <div className="w-28 h-28 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl font-display font-bold border-4 shadow-[0_0_30px_rgba(0,0,0,0.5),0_0_25px_rgba(255,255,255,0.2)] relative overflow-hidden"
+               style={{ background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), transparent 50%), linear-gradient(135deg, ${winner.color}, #ffffff20)`, borderColor: '#0f172a', color: '#0f172a' }}>
+            <div className="absolute inset-[-10%] bg-white/15 blur-2xl pointer-events-none"></div>
+            <div className="absolute inset-2 rounded-full border border-white/20 mix-blend-screen"></div>
+            <span className="relative z-10 drop-shadow-[0_3px_6px_rgba(0,0,0,0.3)]">{winner.name.charAt(0).toUpperCase()}</span>
           </div>
           
           <h2 className="text-cyan-400 text-xs uppercase tracking-[0.2em] font-bold mb-2">The Chosen One</h2>

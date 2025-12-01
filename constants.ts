@@ -12,3 +12,14 @@ export const WHEEL_COLORS = [
 ];
 
 export const INITIAL_PLAYERS: string[] = [];
+
+export const PRESET_PLAYERS: string[] = [
+  'Vex',
+  'Nyx',
+  'Orion',
+  'Lyra',
+  'Rex',
+  'Nova',
+  'Pyre',
+  'Astra'
+];
