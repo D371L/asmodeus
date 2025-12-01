@@ -514,32 +514,6 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
               }}
             ></div>
             
-            {/* Perfectly Centered Pentagram/Star */}
-            <div className="absolute inset-0 flex items-center justify-center animate-[spin_60s_linear_infinite_reverse]">
-              <svg viewBox="0 0 100 100" className="w-[60%] h-[60%] drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]">
-                 <defs>
-                   <linearGradient id="starGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#fca5a5" />
-                      <stop offset="100%" stopColor="#b91c1c" />
-                   </linearGradient>
-                 </defs>
-                 {/* Mathematical 5-point star coordinates centered at 50,50 */}
-                 <polygon 
-                   points="50,15 61,38 85,38 66,54 73,79 50,65 27,79 34,54 15,38 39,38"
-                   fill="none" 
-                   stroke="url(#starGradient)" 
-                   strokeWidth="3" 
-                   strokeLinejoin="round"
-                   transform="rotate(180 50 50)" 
-                 />
-                 <circle cx="50" cy="50" r="28" stroke="#7f1d1d" strokeWidth="1" fill="none" opacity="0.5" />
-              </svg>
-            </div>
-
-            {/* The Eye/Core */}
-            <div className="absolute w-4 h-4 bg-red-600 rounded-full shadow-[0_0_15px_#ef4444] animate-pulse flex items-center justify-center z-30">
-               <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_white]"></div>
-            </div>
           </div>
        </div>
     </div>
