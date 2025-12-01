@@ -35,11 +35,15 @@ const WinnerModal: React.FC<WinnerModalProps> = ({ winner, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-slate-900 border border-fuchsia-500/50 rounded-2xl shadow-[0_0_50px_rgba(192,38,211,0.3)] max-w-sm w-full p-8 relative animate-scale-in overflow-hidden">
+      <div className="bg-slate-900 border border-fuchsia-500/50 rounded-2xl shadow-[0_0_50px_rgba(192,38,211,0.3)] max-w-sm w-full p-8 relative animate-scale-in overflow-hidden"
+           style={{ boxShadow: `0 0 40px ${winner.color}55, inset 0 0 20px rgba(0,0,0,0.4)`, borderColor: winner.color }}>
         
         {/* Background glow effect */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-fuchsia-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl" style={{ backgroundColor: winner.color, opacity: 0.25 }}></div>
+        <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full blur-3xl" style={{ backgroundColor: winner.color, opacity: 0.2 }}></div>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 rounded-full" style={{ background: `radial-gradient(circle at 50% 50%, ${winner.color}33, transparent 60%)` }}></div>
+        </div>
 
         <button
           onClick={onClose}
@@ -66,10 +70,10 @@ const WinnerModal: React.FC<WinnerModalProps> = ({ winner, onClose }) => {
                <p className="text-xs text-fuchsia-400 mb-2 flex items-center justify-center gap-1 uppercase tracking-wider font-bold">
                  <Crown className="w-3 h-3" /> Congratulations
                </p>
-               <p className="text-xl text-white font-medium font-display leading-relaxed">"{message}"</p>
-             </div>
+              <p className="text-xl text-white font-medium font-display leading-relaxed">"{message}"</p>
+            </div>
 
-            <button
+           <button
               onClick={onClose}
               className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 rounded-xl font-semibold text-slate-300 transition-colors uppercase tracking-wide text-sm"
             >

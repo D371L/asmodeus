@@ -173,3 +173,38 @@ body {
   0% { transform: translate3d(0,0,0); }
   100% { transform: translate3d(-140px, -140px, 0); }
 }
+
+/* Floating particle layer */
+.floating-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+.floating-particles .dot {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: rgba(34,211,238,0.6);
+  border-radius: 999px;
+  box-shadow: 0 0 8px rgba(34,211,238,0.4);
+  animation: drift 18s linear infinite;
+}
+.floating-particles .dot.alt {
+  background: rgba(236,72,153,0.45);
+  box-shadow: 0 0 8px rgba(236,72,153,0.35);
+  animation-duration: 22s;
+}
+@keyframes drift {
+  0% { transform: translate3d(0,0,0); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.7; }
+  100% { transform: translate3d(0,-120px,0); opacity: 0; }
+}
+
+@keyframes win-ripple {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(1.2); opacity: 0; }
+}

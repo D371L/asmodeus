@@ -29,9 +29,9 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
   const gradients = useMemo(() => {
     return players.map((p, idx) => {
       const base = p.color;
-      const highlight = shadeColor(base, 22);
-      const shadow = shadeColor(base, -18);
-      const accent = shadeColor(base, 8);
+      const highlight = shadeColor(base, 28);
+      const shadow = shadeColor(base, -20);
+      const accent = shadeColor(base, 10);
       return {
         id: `grad-${p.id}`,
         highlight,
@@ -66,8 +66,8 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
     
     // Generator for the pegs on the rim
     const pegArcGenerator = d3.arc<d3.PieArcDatum<Player>>()
-      .innerRadius(radius - 10)
-      .outerRadius(radius - 10);
+      .innerRadius(radius - 8)
+      .outerRadius(radius - 8);
 
     const data = pie(players);
 
@@ -248,8 +248,25 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
       {/* Decorative Outer Bezel / Chassis */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none opacity-60">
         <svg width={radius * 2.4} height={radius * 2.4} viewBox={`0 0 ${radius * 2.4} ${radius * 2.4}`} className="animate-[spin_40s_linear_infinite]">
+          <defs>
+            <radialGradient id="rimPulse" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="rgba(236,72,153,0.5)" />
+              <stop offset="70%" stopColor="rgba(236,72,153,0.1)" />
+              <stop offset="100%" stopColor="rgba(236,72,153,0)" />
+            </radialGradient>
+          </defs>
           <circle cx={radius * 1.2} cy={radius * 1.2} r={radius * 1.15} fill="none" stroke="#334155" strokeWidth="1" strokeDasharray="10 10" opacity="0.5" />
           <circle cx={radius * 1.2} cy={radius * 1.2} r={radius * 1.08} fill="none" stroke="#ef4444" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" />
+          {isSpinning && (
+            <circle
+              cx={radius * 1.2}
+              cy={radius * 1.2}
+              r={radius * 1.05}
+              fill="url(#rimPulse)"
+              opacity="0.35"
+              className="animate-ping"
+            />
+          )}
         </svg>
       </div>
 
@@ -261,14 +278,14 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
                       bg-slate-950 overflow-hidden"
             style={{ width: radius * 2, height: radius * 2 }}>
 
-      {/* Beam sweep on final turns */}
+        {/* Beam sweep on final turns */}
         {beamTrigger > 0 && (
           <div
             key={beamTrigger}
             className="absolute left-1/2 top-0 w-[40%] h-full pointer-events-none z-30"
             style={{
               transform: 'translate(-50%, -4%)',
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0))',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0))',
               filter: 'blur(2px)',
               mixBlendMode: 'screen',
               animation: 'beam-sweep 0.8s ease-out forwards',
@@ -295,37 +312,46 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
           }}
           onTransitionEnd={handleTransitionEnd}
         >
-          <defs>
-            <linearGradient id="metal-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#1e293b" />
-              <stop offset="50%" stopColor="#0f172a" />
-              <stop offset="100%" stopColor="#020617" />
-            </linearGradient>
-             <filter id="text-shadow">
-               <feDropShadow dx="1" dy="1" stdDeviation="1" floodColor="rgba(0,0,0,0.5)"/>
-             </filter>
-             <filter id="winner-glow">
-               <feGaussianBlur stdDeviation="4" result="blur" />
-               <feMerge>
-                 <feMergeNode in="blur" />
-                 <feMergeNode in="SourceGraphic" />
-               </feMerge>
-             </filter>
-             {gradients.map((g) => (
-               <linearGradient
-                 key={g.id}
-                 id={g.id}
-                 x1="0%"
-                 y1="0%"
-                 x2="100%"
-                 y2="100%"
-                 gradientTransform={`rotate(${g.angle})`}
-               >
-                 <stop offset="0%" stopColor={g.highlight} />
-                 <stop offset="45%" stopColor={g.accent} />
-                 <stop offset="100%" stopColor={g.shadow} />
-               </linearGradient>
-             ))}
+      <defs>
+        <linearGradient id="metal-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#1e293b" />
+          <stop offset="50%" stopColor="#0f172a" />
+          <stop offset="100%" stopColor="#020617" />
+        </linearGradient>
+         <filter id="text-shadow">
+           <feDropShadow dx="1" dy="1" stdDeviation="1" floodColor="rgba(0,0,0,0.5)"/>
+         </filter>
+         <filter id="winner-glow">
+           <feGaussianBlur stdDeviation="4" result="blur" />
+           <feMerge>
+             <feMergeNode in="blur" />
+             <feMergeNode in="SourceGraphic" />
+           </feMerge>
+         </filter>
+         <pattern id="metal-texture" width="6" height="6" patternUnits="userSpaceOnUse">
+           <rect width="6" height="6" fill="rgba(255,255,255,0.04)" />
+           <path d="M0 6 L6 0" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+         </pattern>
+         <pattern id="carbon" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+           <rect width="8" height="8" fill="rgba(255,255,255,0.02)" />
+           <path d="M0 0 L0 8" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
+           <path d="M4 0 L4 8" stroke="rgba(255,255,255,0.08)" strokeWidth="2" />
+         </pattern>
+         {gradients.map((g) => (
+           <linearGradient
+             key={g.id}
+             id={g.id}
+             x1="0%"
+             y1="0%"
+             x2="100%"
+             y2="100%"
+             gradientTransform={`rotate(${g.angle})`}
+           >
+             <stop offset="0%" stopColor={g.highlight} />
+             <stop offset="45%" stopColor={g.accent} />
+             <stop offset="100%" stopColor={g.shadow} />
+           </linearGradient>
+         ))}
           </defs>
           <g>
             {players.length === 0 ? (
@@ -368,6 +394,11 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
                     className="transition-all"
                     filter={highlightId === arc.data.id ? 'url(#winner-glow)' : undefined}
                   />
+                  <path
+                    d={arc.path || undefined}
+                    fill={i % 2 === 0 ? 'url(#metal-texture)' : 'url(#carbon)'}
+                    opacity="0.08"
+                  />
                   {highlightId === arc.data.id && (
                     <path
                       d={arc.path || undefined}
@@ -383,10 +414,10 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
                   <circle 
                     cx={arc.pegCentroid[0]} 
                     cy={arc.pegCentroid[1]} 
-                    r="3" 
-                    fill="#e2e8f0" 
-                    stroke="#000" 
-                    strokeWidth="1"
+                    r="3.5" 
+                    fill="url(#metal-gradient)" 
+                    stroke="#0f172a" 
+                    strokeWidth="1.2"
                     className="shadow-sm"
                   />
 
