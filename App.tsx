@@ -3,8 +3,7 @@ import { Player } from './types';
 import { INITIAL_PLAYERS, WHEEL_COLORS, PRESET_PLAYERS } from './constants';
 import Wheel from './components/Wheel';
 import Controls from './components/Controls';
-import WinnerModal from './components/WinnerModal';
-import Confetti from './components/Confetti';
+import { Suspense, lazy } from 'react';
 import WinRipple from './components/WinRipple';
 import { Play, Zap, History, Trophy } from 'lucide-react';
 import { ensureAudio, playTick, playWin, playSpinStart } from './utils/audio';
@@ -26,6 +25,7 @@ const CONFETTI_DURATION = 2200;
 const SOUND_STORAGE_KEY = 'asmodeus_sound';
 const MODE_STORAGE_KEY = 'asmodeus_elimination';
 const DEMO_STORAGE_KEY = 'asmodeus_demo';
+const STREAMER_STORAGE_KEY = 'asmodeus_streamer';
 
 const normalizePlayers = (raw: any[], colorOffset = 0): Player[] => {
   if (!Array.isArray(raw)) return [];
@@ -110,6 +110,15 @@ const [eliminationMode, setEliminationMode] = useState(() => {
   const [beamTrigger, setBeamTrigger] = useState(0);
   const [liveMessage, setLiveMessage] = useState('');
   const [rippleTrigger, setRippleTrigger] = useState(0);
+  const [streamerMode, setStreamerMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STREAMER_STORAGE_KEY);
+      if (saved) return saved === 'true';
+    }
+    return false;
+  });
+  const [countdown, setCountdown] = useState(10);
+  const [isReady, setIsReady] = useState(false);
   
   // Audio state refs
   const lastTickRef = useRef<number>(0);
@@ -269,6 +278,12 @@ const [eliminationMode, setEliminationMode] = useState(() => {
     }
   }, [demoMode]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STREAMER_STORAGE_KEY, String(streamerMode));
+    }
+  }, [streamerMode]);
+
   // Demo mode auto-spin
   useEffect(() => {
     if (!demoMode) return;
@@ -312,6 +327,27 @@ const [eliminationMode, setEliminationMode] = useState(() => {
         console.warn('SW register failed', err);
       });
     }
+  }, []);
+
+  // Streamer mode countdown
+  useEffect(() => {
+    if (!streamerMode) return;
+    if (isSpinning) return;
+    const interval = window.setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          handleSpin();
+          return 10;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [streamerMode, isSpinning, handleSpin]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsReady(true), 400);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const handleAddPlayer = (name: string, color: string) => {
@@ -417,6 +453,14 @@ const [eliminationMode, setEliminationMode] = useState(() => {
 
   return (
     <div className="min-h-screen lg:h-screen bg-[#020617] text-slate-200 flex flex-col lg:flex-row lg:overflow-hidden font-sans selection:bg-red-500 selection:text-white relative">
+      {!isReady && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-24 h-24 rounded-full border-4 border-fuchsia-500/40 border-t-transparent animate-spin"></div>
+            <div className="text-sm font-mono text-slate-300">Initializing systems...</div>
+          </div>
+        </div>
+      )}
       <div className="floating-stripes"></div>
       <div className="noise-overlay"></div>
       <div className="grid-overlay"></div>
@@ -583,7 +627,7 @@ const [eliminationMode, setEliminationMode] = useState(() => {
              <span>Status: {isSpinning ? 'ACTIVE' : 'READY'}</span>
              <div className="flex items-center gap-2">
                <button
-                onClick={handleToggleSound}
+                 onClick={handleToggleSound}
                  className={`px-2 py-1 rounded border transition-colors ${
                    soundEnabled 
                      ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10' 
@@ -598,16 +642,38 @@ const [eliminationMode, setEliminationMode] = useState(() => {
                  className={`px-2 py-1 rounded border transition-colors ${
                    demoMode
                      ? 'border-amber-400 text-amber-300 bg-amber-400/10'
-                   : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-500'
+                     : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-500'
                  }`}
                  title="Demo mode: auto-spin"
                >
                  Demo: {demoMode ? 'On' : 'Off'}
                </button>
+               <button
+                 onClick={() => setStreamerMode((prev) => !prev)}
+                 className={`px-2 py-1 rounded border transition-colors ${
+                   streamerMode
+                     ? 'border-green-400 text-green-300 bg-green-400/10'
+                     : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-500'
+                 }`}
+                 title="Streamer mode: fullscreen + auto-spin timer"
+               >
+                 Streamer: {streamerMode ? 'On' : 'Off'}
+               </button>
                <span>{players.length} SOULS LOADED</span>
              </div>
           </div>
           <div className="mt-1 text-[10px] text-slate-500 font-mono uppercase">Space — Spin, S — Sound, D — Demo</div>
+          {streamerMode && !isSpinning && (
+            <div className="mt-3 text-xs text-emerald-300 font-mono flex items-center justify-between">
+              <span>Auto-spin in {countdown}s</span>
+              <button
+                onClick={handleSpin}
+                className="px-3 py-2 rounded-md bg-emerald-600 text-white font-semibold tracking-wide text-xs hover:bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.35)]"
+              >
+                Next spin now
+              </button>
+            </div>
+          )}
         </div>
 
       </div>

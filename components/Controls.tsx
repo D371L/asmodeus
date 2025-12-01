@@ -145,6 +145,18 @@ const Controls: React.FC<ControlsProps> = ({
             onDragStart={() => handleDragStart(idx)}
             onDragOver={(e) => handleDragOver(e, idx)}
             onDragEnd={handleDragEnd}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === 'Delete' || e.key === 'Backspace') {
+                onRemovePlayer(player.id);
+              }
+              if (e.key === 'ArrowUp' && idx > 0) {
+                onReorderPlayers(idx, idx - 1);
+              }
+              if (e.key === 'ArrowDown' && idx < players.length - 1) {
+                onReorderPlayers(idx, idx + 1);
+              }
+            }}
           >
             <span className="font-medium text-slate-300 truncate max-w-[200px] text-sm font-mono tracking-tight drop-shadow-[0_0_6px_rgba(255,255,255,0.08)]">{player.name}</span>
             <button

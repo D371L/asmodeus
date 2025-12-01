@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import * as d3 from 'd3';
+import { pie, arc, PieArcDatum } from 'd3-shape';
 import { Player } from '../types';
 
 interface WheelProps {
@@ -45,13 +45,14 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
   // Detect mobile layout to adjust sizes conditionally
   // Using < 1024px to match the 'lg' breakpoint used in App.tsx
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+  const winnerArc = highlightId ? arcs.find((a) => a.data.id === highlightId) : null;
 
   const arcs = useMemo(() => {
-    const pie = d3.pie<Player>()
+    const pieGen = pie<Player>()
       .value(1)
       .sort(null);
 
-    const arcGenerator = d3.arc<d3.PieArcDatum<Player>>()
+    const arcGenerator = arc<PieArcDatum<Player>>()
       .innerRadius(30)
       .outerRadius(radius);
     
@@ -60,16 +61,16 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
     // Desktop: 0.76 (closer to edge)
     const textOffsetFactor = isMobile ? 0.62 : 0.76;
 
-    const labelArcGenerator = d3.arc<d3.PieArcDatum<Player>>()
+    const labelArcGenerator = arc<PieArcDatum<Player>>()
       .innerRadius(radius * textOffsetFactor)
       .outerRadius(radius * textOffsetFactor);
     
     // Generator for the pegs on the rim
-    const pegArcGenerator = d3.arc<d3.PieArcDatum<Player>>()
+    const pegArcGenerator = arc<PieArcDatum<Player>>()
       .innerRadius(radius - 8)
       .outerRadius(radius - 8);
 
-    const data = pie(players);
+    const data = pieGen(players);
 
     return data.map((d, i) => {
       return {
@@ -278,6 +279,27 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
                       bg-slate-950 overflow-hidden"
             style={{ width: radius * 2, height: radius * 2 }}>
 
+        {/* Winner halo behind segments */}
+        {winnerArc && (
+          <svg
+            className="absolute inset-0 pointer-events-none z-0"
+            width="100%"
+            height="100%"
+            viewBox={`-${radius} -${radius} ${radius * 2} ${radius * 2}`}
+          >
+            <path
+              d={
+                arc<PieArcDatum<Player>>()
+                  .innerRadius(radius - 12)
+                  .outerRadius(radius + 22)(winnerArc) || undefined
+              }
+              fill="url(#haloGradient)"
+              opacity="0.4"
+              style={{ animation: 'win-ripple 1.3s ease-out' }}
+            />
+          </svg>
+        )}
+
         {/* Beam sweep on final turns */}
         {beamTrigger > 0 && (
           <div
@@ -312,11 +334,11 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
           }}
           onTransitionEnd={handleTransitionEnd}
         >
-      <defs>
-        <linearGradient id="metal-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1e293b" />
-          <stop offset="50%" stopColor="#0f172a" />
-          <stop offset="100%" stopColor="#020617" />
+          <defs>
+            <linearGradient id="metal-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#1e293b" />
+              <stop offset="50%" stopColor="#0f172a" />
+              <stop offset="100%" stopColor="#020617" />
         </linearGradient>
          <filter id="text-shadow">
            <feDropShadow dx="1" dy="1" stdDeviation="1" floodColor="rgba(0,0,0,0.5)"/>
@@ -337,6 +359,10 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
            <path d="M0 0 L0 8" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
            <path d="M4 0 L4 8" stroke="rgba(255,255,255,0.08)" strokeWidth="2" />
          </pattern>
+         <radialGradient id="haloGradient" cx="50%" cy="50%" r="60%">
+           <stop offset="0%" stopColor="rgba(255,255,255,0.7)" />
+           <stop offset="80%" stopColor="rgba(255,255,255,0)" />
+         </radialGradient>
          {gradients.map((g) => (
            <linearGradient
              key={g.id}
