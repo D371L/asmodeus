@@ -3,13 +3,11 @@ import { Player } from './types';
 import { INITIAL_PLAYERS, WHEEL_COLORS, PRESET_PLAYERS } from './constants';
 import Wheel from './components/Wheel';
 import Controls from './components/Controls';
-import { Suspense, lazy } from 'react';
 import WinRipple from './components/WinRipple';
+import WinnerModal from './components/WinnerModal';
+import Confetti from './components/Confetti';
 import { Play, Zap, History, Trophy } from 'lucide-react';
 import { ensureAudio, playTick, playWin, playSpinStart } from './utils/audio';
-
-const WinnerModal = lazy(() => import('./components/WinnerModal'));
-const Confetti = lazy(() => import('./components/Confetti'));
 
 // Helper for cubic-bezier(0.1, 0, 0.18, 1) approximation
 // We need this to calculate where the wheel IS during the JS loop to play sounds correctly
@@ -150,11 +148,6 @@ const [eliminationMode, setEliminationMode] = useState(() => {
     return () => window.removeEventListener('resize', debouncedResize);
   }, []);
 
-  // Preload lazy chunks to avoid blank modal on first win
-  useEffect(() => {
-    import('./components/WinnerModal');
-    import('./components/Confetti');
-  }, []);
 
   const handleSpin = useCallback(() => {
     if (isSpinning || players.length < 2) return;
@@ -328,14 +321,6 @@ const [eliminationMode, setEliminationMode] = useState(() => {
     return () => {
       window.clearTimeout(beamTimeoutRef.current);
     };
-  }, []);
-
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/asmodeus/sw.js', { scope: '/asmodeus/' }).catch((err) => {
-        console.warn('SW register failed', err);
-      });
-    }
   }, []);
 
   // Streamer mode countdown
@@ -687,19 +672,8 @@ const [eliminationMode, setEliminationMode] = useState(() => {
 
       </div>
 
-      <Suspense
-        fallback={
-          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur">
-            <div className="flex flex-col items-center gap-3 text-slate-200 font-mono text-sm">
-              <div className="w-10 h-10 rounded-full border-4 border-fuchsia-400/50 border-t-transparent animate-spin"></div>
-              <span>Loading...</span>
-            </div>
-          </div>
-        }
-      >
-        <WinnerModal winner={winner} onClose={handleModalClose} />
-        <Confetti trigger={confettiTrigger} duration={CONFETTI_DURATION} />
-      </Suspense>
+      <WinnerModal winner={winner} onClose={handleModalClose} />
+      <Confetti trigger={confettiTrigger} duration={CONFETTI_DURATION} />
       <WinRipple trigger={rippleTrigger} color={winner?.color || '#ef4444'} />
       <div className="sr-only" aria-live="polite">
         {(winner ? `${winner.name} won` : isSpinning ? 'Wheel is spinning' : 'Ready') + '. ' + (liveMessage || '')}
