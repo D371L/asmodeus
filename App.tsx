@@ -530,7 +530,7 @@ const [eliminationMode, setEliminationMode] = useState(() => {
 
         <div className="flex-none lg:flex-1 lg:overflow-y-auto custom-scrollbar flex flex-col p-4 lg:p-6 gap-4">
            
-           <div className="w-full glass-panel rounded-xl border border-slate-800/60 shadow-xl relative overflow-hidden p-4 lg:p-5">
+           <div className="w-full glass-panel holo-card rounded-xl border border-slate-800/60 shadow-xl relative overflow-hidden p-4 lg:p-5">
              <div className="hud-line absolute top-0 left-0 right-0" aria-hidden></div>
              <Controls 
                players={players} 
@@ -566,7 +566,7 @@ const [eliminationMode, setEliminationMode] = useState(() => {
            </div>
 
            {history.length > 0 && (
-             <div className="hidden lg:block glass-panel rounded-xl p-4 border border-slate-800/70 shrink-0 shadow-xl relative overflow-hidden">
+             <div className="hidden lg:block glass-panel holo-card rounded-xl p-4 border border-slate-800/70 shrink-0 shadow-xl relative overflow-hidden">
                <div className="absolute inset-x-0 top-0 h-1 hud-line" aria-hidden></div>
                <div className="flex items-center gap-2 mb-3 text-slate-400">
                  <History className="w-4 h-4" />
