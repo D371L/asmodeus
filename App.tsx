@@ -8,6 +8,9 @@ import WinRipple from './components/WinRipple';
 import { Play, Zap, History, Trophy } from 'lucide-react';
 import { ensureAudio, playTick, playWin, playSpinStart } from './utils/audio';
 
+const WinnerModal = lazy(() => import('./components/WinnerModal'));
+const Confetti = lazy(() => import('./components/Confetti'));
+
 // Helper for cubic-bezier(0.1, 0, 0.18, 1) approximation
 // We need this to calculate where the wheel IS during the JS loop to play sounds correctly
 function cubicBezier(t: number): number {
@@ -678,9 +681,11 @@ const [eliminationMode, setEliminationMode] = useState(() => {
 
       </div>
 
-      <WinnerModal winner={winner} onClose={handleModalClose} />
+      <Suspense fallback={null}>
+        <WinnerModal winner={winner} onClose={handleModalClose} />
+        <Confetti trigger={confettiTrigger} duration={CONFETTI_DURATION} />
+      </Suspense>
       <WinRipple trigger={rippleTrigger} color={winner?.color || '#ef4444'} />
-      <Confetti trigger={confettiTrigger} duration={CONFETTI_DURATION} />
       <div className="sr-only" aria-live="polite">
         {(winner ? `${winner.name} won` : isSpinning ? 'Wheel is spinning' : 'Ready') + '. ' + (liveMessage || '')}
       </div>
