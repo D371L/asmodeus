@@ -135,6 +135,79 @@ const App: React.FC = () => {
     return () => window.removeEventListener('resize', debouncedResize);
   }, []);
 
+  const handleSpin = useCallback(() => {
+    if (isSpinning || players.length < 2) return;
+
+    setWinner(null);
+    setHighlightId(null);
+    setIsSpinning(true);
+    window.clearTimeout(beamTimeoutRef.current);
+    
+    if (window.innerWidth < 1024) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // CSS Animation Duration
+    const duration = 10000; 
+
+    const spinCount = 8; // More spins for dramatic effect
+    const randomDegree = Math.floor(Math.random() * 360);
+    const startRotation = rotation;
+    const targetRotation = startRotation + (360 * spinCount) + randomDegree;
+    
+    setRotation(targetRotation);
+
+    if (soundEnabled) {
+      ensureAudio();
+      playSpinStart();
+    }
+
+    // Light beam near финальные обороты
+    beamTimeoutRef.current = window.setTimeout(() => {
+      setBeamTrigger((prev) => prev + 1);
+    }, duration * 0.7);
+
+    // Audio Sync Loop
+    // We simulate the rotation in JS to trigger sounds when passing pegs
+    const startTime = performance.now();
+    const segmentSize = 360 / players.length;
+
+    const tick = () => {
+      const now = performance.now();
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Calculate current virtual rotation based on easing
+      const easedProgress = cubicBezier(progress);
+      const currentRotation = startRotation + (targetRotation - startRotation) * easedProgress;
+
+      // Check if we passed a segment boundary (peg)
+      // We check if the integer division of segment size changed
+      // Offset by -90 because the pointer is at the top
+      const currentTickIndex = Math.floor((currentRotation) / segmentSize);
+      
+      if (currentTickIndex > lastTickRef.current) {
+        // Only play if moving fast enough (don't click on the very last slow creep)
+        if (progress < 0.98) { 
+           if (soundEnabled) {
+             playTick();
+           }
+           setSparkBurst((prev) => prev + 1);
+        }
+        lastTickRef.current = currentTickIndex;
+      }
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    lastTickRef.current = Math.floor(startRotation / segmentSize);
+    cancelAnimationFrame(animationFrameRef.current);
+    animationFrameRef.current = requestAnimationFrame(tick);
+
+  }, [rotation, isSpinning, players.length, soundEnabled]);
+
   // Keyboard support (Spacebar to spin)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -267,79 +340,6 @@ const App: React.FC = () => {
       setWinner(null);
     }
   };
-
-  const handleSpin = useCallback(() => {
-    if (isSpinning || players.length < 2) return;
-
-    setWinner(null);
-    setHighlightId(null);
-    setIsSpinning(true);
-    window.clearTimeout(beamTimeoutRef.current);
-    
-    if (window.innerWidth < 1024) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // CSS Animation Duration
-    const duration = 10000; 
-
-    const spinCount = 8; // More spins for dramatic effect
-    const randomDegree = Math.floor(Math.random() * 360);
-    const startRotation = rotation;
-    const targetRotation = startRotation + (360 * spinCount) + randomDegree;
-    
-    setRotation(targetRotation);
-
-    if (soundEnabled) {
-      ensureAudio();
-      playSpinStart();
-    }
-
-    // Light beam near финальные обороты
-    beamTimeoutRef.current = window.setTimeout(() => {
-      setBeamTrigger((prev) => prev + 1);
-    }, duration * 0.7);
-
-    // Audio Sync Loop
-    // We simulate the rotation in JS to trigger sounds when passing pegs
-    const startTime = performance.now();
-    const segmentSize = 360 / players.length;
-
-    const tick = () => {
-      const now = performance.now();
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // Calculate current virtual rotation based on easing
-      const easedProgress = cubicBezier(progress);
-      const currentRotation = startRotation + (targetRotation - startRotation) * easedProgress;
-
-      // Check if we passed a segment boundary (peg)
-      // We check if the integer division of segment size changed
-      // Offset by -90 because the pointer is at the top
-      const currentTickIndex = Math.floor((currentRotation) / segmentSize);
-      
-      if (currentTickIndex > lastTickRef.current) {
-        // Only play if moving fast enough (don't click on the very last slow creep)
-        if (progress < 0.98) { 
-           if (soundEnabled) {
-             playTick();
-           }
-           setSparkBurst((prev) => prev + 1);
-        }
-        lastTickRef.current = currentTickIndex;
-      }
-
-      if (progress < 1) {
-        animationFrameRef.current = requestAnimationFrame(tick);
-      }
-    };
-
-    lastTickRef.current = Math.floor(startRotation / segmentSize);
-    cancelAnimationFrame(animationFrameRef.current);
-    animationFrameRef.current = requestAnimationFrame(tick);
-
-  }, [rotation, isSpinning, players.length, soundEnabled]);
 
   const handleSpinEnd = () => {
     setIsSpinning(false);
