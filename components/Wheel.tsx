@@ -505,7 +505,14 @@ const Wheel: React.FC<WheelProps> = ({ players, rotation, radius, onSpinEnd, isS
             </div>
 
             {/* Inner Dark Circle */}
-            <div className="absolute inset-[24%] rounded-full bg-black border border-red-900/60 shadow-inner"></div>
+            <div 
+              className="absolute inset-[24%] rounded-full bg-black border border-red-900/60 shadow-inner overflow-hidden"
+              style={{
+                backgroundImage: 'url(/asmodeus/d371l_logo.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            ></div>
             
             {/* Perfectly Centered Pentagram/Star */}
             <div className="absolute inset-0 flex items-center justify-center animate-[spin_60s_linear_infinite_reverse]">
