@@ -1,6 +1,14 @@
 # Asmodeus Wheel
 
-Hi! I built a neon “wheel of fortune” for giveaways and interactive picks. It saves state, plays synthy sounds, has a demo auto-spin mode, and ships as a PWA. Use it, remix it, enjoy: https://d371l.github.io/asmodeus/
+Hi! I built a neon "wheel of fortune" for giveaways and interactive picks. It saves state, plays synthy sounds, has a demo auto-spin mode, and ships as a PWA. Use it, remix it, enjoy: https://d371l.github.io/asmodeus/
+
+## About
+
+This project was created by **d371l**. It is **OpenSource** and freely available for use for any purposes. Feel free to use, modify, and distribute it as needed.
+
+## ⭐ Star this project
+
+If you found this project useful or interesting, please consider giving it a star on GitHub! It helps others discover the project and shows your appreciation.
 
 ## Stack
 - React 18 + TypeScript
@@ -56,3 +64,7 @@ Hi! I built a neon “wheel of fortune” for giveaways and interactive picks. I
 - `constants.ts` — palette and name presets.
 - `utils/audio.ts` — Web Audio synthesis.
 - `public/` — PWA assets (manifest, service worker, icons).
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
